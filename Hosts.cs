@@ -3,90 +3,69 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Linq;
 
 namespace PingStat
 {
     internal class Hosts
     {
-        private List<Host> _hosts;
-        private static string _verboseLog = "verbose.tab";
-        private bool _onLineStatusChanged;
-        private bool _onLine;
+        private static readonly string _verboseLog = "verbose.tab";
+        private static readonly string sep = "\t";
+        private readonly List<Host> _hosts;
         private bool? _onLinePrev;
         private DateTime? _prevChange;
-        private TimeSpan _lastStateSpan;
-        private static string sep = "\t";
+
         public Hosts(IniFile ini)
         {
             _hosts = new List<Host>();
 
-            NameValueCollection hostsConf = new NameValueCollection();
+            var hostsConf = new NameValueCollection();
             ini.ReadSection("hosts", hostsConf);
             foreach (var hostKey in hostsConf.AllKeys)
             {
-
-                string name = hostsConf.Get(hostKey);
+                var name = hostsConf.Get(hostKey);
                 if (string.IsNullOrEmpty(name))
                     name = hostKey;
 
-                _hosts.Add(new Host { Name = name });
+                _hosts.Add(new Host {Name = name});
             }
         }
 
-        public bool OnLineStatusChanged
-        {
-            get
-            {
-                return _onLineStatusChanged;
-            }
-        }
+        public bool OnLineStatusChanged { get; private set; }
 
-        public bool OnLine
-        {
-            get
-            {
-                return _onLine;
-            }
-        }
+        public bool OnLine { get; private set; }
 
-        public TimeSpan LastStateSpan
-        {
-            get { return _lastStateSpan; }
-        }
+        public TimeSpan LastStateSpan { get; private set; }
 
         public void RefreshPing()
         {
             foreach (var host in _hosts)
                 host.Ping();
 
-            _onLine = false;
+            OnLine = false;
             foreach (var host in _hosts)
-                _onLine |= host.PingSuccess;
+                OnLine |= host.PingSuccess;
 
             if (!_onLinePrev.HasValue)
             {
-                _onLineStatusChanged = true;
+                OnLineStatusChanged = true;
                 _prevChange = DateTime.Now;
             }
             else
             {
-                _onLineStatusChanged = _onLinePrev.Value != _onLine;
-                if (_onLineStatusChanged)
+                OnLineStatusChanged = _onLinePrev.Value != OnLine;
+                if (OnLineStatusChanged)
                 {
-                    _lastStateSpan = DateTime.Now.Subtract(_prevChange.Value).Duration();
+                    LastStateSpan = DateTime.Now.Subtract(_prevChange.Value).Duration();
                     _prevChange = DateTime.Now;
                 }
             }
 
-            _onLinePrev = _onLine;
-
+            _onLinePrev = OnLine;
         }
 
         public void WriteVerboseLog()
         {
-
             if (!File.Exists(_verboseLog))
             {
                 var header = "time" + sep + string.Join(sep, _hosts.Select(s => s.Name).ToArray())
@@ -97,7 +76,6 @@ namespace PingStat
             var line = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + sep
                 + string.Join(sep, HostsToValues()) + Environment.NewLine;
             File.AppendAllText(_verboseLog, line);
-
         }
 
         private string[] HostsToValues()
@@ -107,7 +85,7 @@ namespace PingStat
 
         public void OnLineStatusClear()
         {
-            _onLineStatusChanged = false;
+            OnLineStatusChanged = false;
         }
     }
 }
