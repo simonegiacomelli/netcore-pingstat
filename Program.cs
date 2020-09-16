@@ -1,12 +1,52 @@
 ﻿using System;
+using System.IO;
+using System.Threading;
 
-namespace ping_stat
+namespace PingStat
 {
     class Program
     {
         static void Main(string[] args)
+        {            
+            IniFile ini = new IniFile(PathManager.GetIniFilename());
+            Hosts hosts=new Hosts(ini);
+            EventWaitHandle wait = new AutoResetEvent (false);
+            bool go = true;
+            Console.CancelKeyPress += (s, e) => { go = false; wait.Set(); };
+            log("Program start");
+            while (go)
+            {
+                Doit(hosts);
+                int time = ini.ReadIntegerAndForce("main", "PollInterval", 1000);
+                if (wait.WaitOne(time))
+                    break;
+                
+            }
+            
+        }
+
+
+        private static void Doit(Hosts hosts)
         {
-            Console.WriteLine("Hello World!");
+            hosts.RefreshPing();
+            hosts.WriteVerboseLog();
+            if(hosts.OnLineStatusChanged)
+            {
+                hosts.OnLineStatusClear();
+                var str = hosts.OnLine ? "Ping is Up" : "Ping is down";
+                if (0 != hosts.LastStateSpan.Ticks)
+                {
+                    str = str + string.Format(" (was {0} for {1})",hosts.OnLine ? "down" : "up", hosts.LastStateSpan);
+                }
+                log(str);
+            }
+        }
+
+        private static void log(string s)
+        {
+            string line = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss fff ") + s + Environment.NewLine;
+            Console.Write(line);
+            File.AppendAllText("linestatus.log",line);
         }
     }
 }
