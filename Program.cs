@@ -8,6 +8,7 @@ namespace PingStat
     {
         private static void Main(string[] args)
         {
+            Console.WriteLine("Using ini: " + PathManager.GetIniFilename());
             var ini = new IniFile(PathManager.GetIniFilename());
             var hosts = new Hosts(ini);
             EventWaitHandle wait = new AutoResetEvent(false);
