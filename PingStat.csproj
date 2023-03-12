@@ -5,4 +5,10 @@
     <TargetFramework>netcoreapp7.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Update="PingStat.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
