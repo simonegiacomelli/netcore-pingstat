@@ -6,8 +6,7 @@ class PathManager
 {
     public static string GetIniFilename()
     {
-        var assemblyFilename = new Uri(Assembly.GetExecutingAssembly().CodeBase ?? string.Empty)
-            .LocalPath;
+        var assemblyFilename = Assembly.GetExecutingAssembly().Location;
         return Path.ChangeExtension(assemblyFilename, ".ini");
     }
 }
