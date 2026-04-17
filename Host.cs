@@ -21,7 +21,7 @@ namespace PingStat
                 PingSuccess = reply.Status == IPStatus.Success;
                 Time = reply.RoundtripTime;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 PingSuccess = false;
             }
