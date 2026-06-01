@@ -5,3 +5,7 @@
 /verbose.tab
 /linestatus.log
 dev-data/some-logs
+
+# build output of any nested project (e.g. tests/PingStat.Tests)
+**/bin/
+**/obj/

@@ -9,15 +9,29 @@ namespace PingStat
 {
     internal class Hosts
     {
-        private static readonly string _verboseLog = "verbose.tab";
         private static readonly string sep = "\t";
         private readonly List<Host> _hosts;
         private bool? _onLinePrev;
         private DateTime? _prevChange;
 
+        // Seams for testing; production uses the defaults.
+        internal string VerboseLogPath = "verbose.tab";
+        internal Action<Host> PingAction = h => h.Ping();
+        internal Func<DateTime> Now = () => DateTime.Now;
+
         public Hosts(IniFile ini)
+            : this(BuildHosts(ini))
         {
-            _hosts = new List<Host>();
+        }
+
+        internal Hosts(List<Host> hosts)
+        {
+            _hosts = hosts;
+        }
+
+        private static List<Host> BuildHosts(IniFile ini)
+        {
+            var hosts = new List<Host>();
 
             var hostsConf = new NameValueCollection();
             ini.ReadSection("hosts", hostsConf);
@@ -27,8 +41,10 @@ namespace PingStat
                 if (string.IsNullOrEmpty(name))
                     name = hostKey;
 
-                _hosts.Add(new Host {Name = name});
+                hosts.Add(new Host {Name = name});
             }
+
+            return hosts;
         }
 
         public bool OnLineStatusChanged { get; private set; }
@@ -40,7 +56,7 @@ namespace PingStat
         public void RefreshPing()
         {
             foreach (var host in _hosts)
-                host.Ping();
+                PingAction(host);
 
             OnLine = false;
             foreach (var host in _hosts)
@@ -49,15 +65,15 @@ namespace PingStat
             if (!_onLinePrev.HasValue)
             {
                 OnLineStatusChanged = true;
-                _prevChange = DateTime.Now;
+                _prevChange = Now();
             }
             else
             {
                 OnLineStatusChanged = _onLinePrev.Value != OnLine;
                 if (OnLineStatusChanged)
                 {
-                    LastStateSpan = DateTime.Now.Subtract(_prevChange.Value).Duration();
-                    _prevChange = DateTime.Now;
+                    LastStateSpan = Now().Subtract(_prevChange.Value).Duration();
+                    _prevChange = Now();
                 }
             }
 
@@ -66,16 +82,16 @@ namespace PingStat
 
         public void WriteVerboseLog()
         {
-            if (!File.Exists(_verboseLog))
+            if (!File.Exists(VerboseLogPath))
             {
                 var header = "time" + sep + string.Join(sep, _hosts.Select(s => s.Name).ToArray())
                              + Environment.NewLine;
-                File.AppendAllText(_verboseLog, header);
+                File.AppendAllText(VerboseLogPath, header);
             }
 
-            var line = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + sep
+            var line = Now().ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + sep
                 + string.Join(sep, HostsToValues()) + Environment.NewLine;
-            File.AppendAllText(_verboseLog, line);
+            File.AppendAllText(VerboseLogPath, line);
         }
 
         private string[] HostsToValues()

@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="PingStat.Tests" />
+    <!-- The test project lives under this folder; don't compile it into the app. -->
+    <Compile Remove="tests/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="PingStat.ini">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
