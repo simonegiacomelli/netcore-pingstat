@@ -29,6 +29,9 @@ namespace PingStat
         }
 
 
+        // Indents DOWN events so up/down read apart at a glance even while scrolling.
+        private static readonly string DownIndent = new string(' ', 30);
+
         private static void Doit(Hosts hosts)
         {
             hosts.RefreshPing();
@@ -36,10 +39,25 @@ namespace PingStat
             if (hosts.OnLineStatusChanged)
             {
                 hosts.OnLineStatusClear();
-                var str = hosts.OnLine ? "Ping is Up" : "Ping is down";
-                if (0 != hosts.LastStateSpan.Ticks)
-                    str = str + string.Format(" (was {0} for {1})", hosts.OnLine ? "down" : "up", hosts.LastStateSpan);
-                log(str);
+                log(FormatStatusChange(hosts.OnLine, hosts.LastStateSpan));
+            }
+        }
+
+        internal static string FormatStatusChange(bool online, TimeSpan lastStateSpan)
+        {
+            if (online)
+            {
+                var str = "UP ↑";
+                if (0 != lastStateSpan.Ticks)
+                    str += " was down for " + DurationFormatter.FormatPadded(lastStateSpan);
+                return str;
+            }
+            else
+            {
+                var str = DownIndent + "DOWN ↓";
+                if (0 != lastStateSpan.Ticks)
+                    str += " was up for " + DurationFormatter.FormatPadded(lastStateSpan);
+                return str;
             }
         }
 
