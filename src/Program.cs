@@ -6,11 +6,15 @@ namespace PingStat
 {
     internal class Program
     {
+        private static string _lineStatusLogPath = "linestatus.log";
+
         private static void Main(string[] args)
         {
-            Console.WriteLine("Using ini: " + PathManager.GetIniFilename());
-            var ini = new IniFile(PathManager.GetIniFilename());
-            var hosts = new Hosts(ini);
+            var paths = PathManager.Resolve(args);
+            _lineStatusLogPath = paths.LineStatusLogPath;
+            Console.WriteLine("Using ini: " + paths.IniPath);
+            var ini = new IniFile(paths.IniPath);
+            var hosts = new Hosts(ini) { VerboseLogPath = paths.VerboseLogPath };
             EventWaitHandle wait = new AutoResetEvent(false);
             var go = true;
             Console.CancelKeyPress += (s, e) =>
@@ -72,7 +76,7 @@ namespace PingStat
         {
             var line = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss fff ") + s + Environment.NewLine;
             Console.Write(line);
-            File.AppendAllText("linestatus.log", line);
+            File.AppendAllText(_lineStatusLogPath, line);
         }
     }
 }
