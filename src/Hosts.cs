@@ -15,7 +15,7 @@ namespace PingStat
         private DateTime? _prevChange;
 
         // Seams for testing; production uses the defaults.
-        internal string VerboseLogPath = "verbose.tab";
+        internal string VerboseLogPath = "verbose.tsv";
         internal Action<Host> PingAction = h => h.Ping();
         internal Func<DateTime> Now = () => DateTime.Now;
 

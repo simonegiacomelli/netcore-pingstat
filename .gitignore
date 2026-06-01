@@ -2,7 +2,7 @@
 /bin/
 /obj/
 /.idea/
-/verbose.tab
+/verbose.tsv
 /linestatus.log
 dev-data/some-logs
 
