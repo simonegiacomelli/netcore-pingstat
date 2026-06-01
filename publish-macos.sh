@@ -1,1 +1,1 @@
-dotnet publish -c Release -r osx.10.11-x64 --self-contained true
+dotnet publish PingStat.csproj -c Release -r osx-x64 --self-contained true
