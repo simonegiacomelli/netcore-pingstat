@@ -13,6 +13,11 @@ namespace PingStat
             var paths = PathManager.Resolve(args);
             _lineStatusLogPath = paths.LineStatusLogPath;
             Console.WriteLine("Using ini: " + paths.IniPath);
+            if (!File.Exists(paths.IniPath))
+            {
+                Console.WriteLine("Ini does not exist, initializing it with " + string.Join(", ", PathManager.DefaultHosts));
+                PathManager.CreateDefaultIni(paths.IniPath);
+            }
             var ini = new IniFile(paths.IniPath);
             var hosts = new Hosts(ini) { VerboseLogPath = paths.VerboseLogPath };
             EventWaitHandle wait = new AutoResetEvent(false);

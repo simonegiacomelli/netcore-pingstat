@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 
 namespace PingStat
 {
@@ -22,6 +23,26 @@ namespace PingStat
 
             // No ini given: default beside the working dir, no prefix.
             return new AppPaths(Path.GetFullPath("PingStat.ini"), string.Empty);
+        }
+
+        // Hosts a fresh ini is seeded with; also drives the startup message.
+        public static readonly string[] DefaultHosts = { "1.1.1.1", "8.8.8.8" };
+
+        public static void CreateDefaultIni(string iniPath)
+        {
+            var dir = Path.GetDirectoryName(iniPath);
+            if (!string.IsNullOrEmpty(dir))
+                Directory.CreateDirectory(dir);
+
+            var sb = new StringBuilder();
+            sb.AppendLine("[main]");
+            sb.AppendLine("PollInterval=2000");
+            sb.AppendLine();
+            sb.AppendLine("[hosts]");
+            foreach (var host in DefaultHosts)
+                sb.AppendLine(host + "=");
+
+            File.WriteAllText(iniPath, sb.ToString());
         }
     }
 

@@ -61,4 +61,48 @@ public class PathManagerTests
 
         Assert.EndsWith("PingStat.v2--verbose.tsv", paths.VerboseLogPath);
     }
+
+    [Fact]
+    public void DefaultHosts_AreThePublicResolvers()
+    {
+        Assert.Equal(new[] { "1.1.1.1", "8.8.8.8" }, PathManager.DefaultHosts);
+    }
+
+    [Fact]
+    public void CreateDefaultIni_WritesAHostsSectionParseableByHosts()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "PingStat-defaults-test.ini");
+        var logPath = Path.Combine(Path.GetTempPath(), "PingStat-defaults-test--verbose.tsv");
+        File.Delete(path);
+        File.Delete(logPath);
+        try
+        {
+            PathManager.CreateDefaultIni(path);
+
+            Assert.True(File.Exists(path));
+
+            // Round-trips through the real IniFile/Hosts parsing, in declared order.
+            var hosts = new Hosts(new IniFile(path)) { VerboseLogPath = logPath };
+            hosts.WriteVerboseLog();
+            var header = File.ReadAllLines(logPath)[0];
+            Assert.Equal("time\t1.1.1.1\t8.8.8.8", header);
+        }
+        finally { File.Delete(path); File.Delete(logPath); }
+    }
+
+    [Fact]
+    public void CreateDefaultIni_CreatesMissingParentDirectory()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "PingStat-newdir-test");
+        var path = Path.Combine(dir, "PingStat.ini");
+        if (Directory.Exists(dir))
+            Directory.Delete(dir, recursive: true);
+        try
+        {
+            PathManager.CreateDefaultIni(path);
+
+            Assert.True(File.Exists(path));
+        }
+        finally { if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true); }
+    }
 }
